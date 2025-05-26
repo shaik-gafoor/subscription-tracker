@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import moment from "moment";
 
 const subscriptionSchema = new mongoose.Schema(
   {
@@ -75,26 +76,24 @@ const subscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-//auto calculate teh renewal date
-// subscriptionSchema.pre("save", function (next) {
-//   if (!this.renewalDate || this.isNew) {
-//     const renewalPeriods = {
-//       daily: 1,
-//       weekly: 7,
-//       monthly: 30,
-//       yearly: 365,
-//     };
-//     this.renewaldate = new Date(this.startDate);
-//     this.renewalDate.setDate(
-//       this.renewalDate.getDate() + renewalPeriods[this.frequency.toLowerCase()]
-//     );
-//   }
-//   //Auto-update means the status if renewal date has passed
-//   if (this.renewalDate < new Date()) {
-//     this.status = "expired";
-//   }
-//   next();
-// });
+// Convert dates from "DD-MM-YYYY" format if necessary
+subscriptionSchema.pre("validate", function (next) {
+  if (typeof this.startDate === "string") {
+    const parsedStart = moment(this.startDate, "DD-MM-YYYY", true);
+    if (parsedStart.isValid()) {
+      this.startDate = parsedStart.toDate();
+    }
+  }
+
+  if (typeof this.renewalDate === "string") {
+    const parsedRenewal = moment(this.renewalDate, "DD-MM-YYYY", true);
+    if (parsedRenewal.isValid()) {
+      this.renewalDate = parsedRenewal.toDate();
+    }
+  }
+
+  next();
+});
 
 subscriptionSchema.pre("save", function (next) {
   const renewalPeriods = {
@@ -106,7 +105,7 @@ subscriptionSchema.pre("save", function (next) {
 
   if (!this.renewalDate || this.isNew) {
     this.renewalDate = new Date(this.startDate); // ensure it's initialized
-    const daysToAdd = renewalPeriods[this.frequency.toLowerCase()];
+    const daysToAdd = renewalPeriods[this.frequency?.toLowerCase()];
 
     if (!daysToAdd) {
       return next(new Error(`Invalid frequency value: ${this.frequency}`));
