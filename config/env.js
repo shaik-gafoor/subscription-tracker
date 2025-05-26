@@ -1,7 +1,9 @@
+/* global process */
 import { config } from "dotenv";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
+console.log("Crappppp:", process.env.NODE_ENV, process.env.PORT);
 export const {
   PORT,
   NODE_ENV,
