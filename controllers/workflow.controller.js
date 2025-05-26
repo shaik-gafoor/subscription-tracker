@@ -10,29 +10,10 @@ const REMINDERS = [7, 5, 2, 1];
 export const sendReminders = serve(async (context) => {
   const { subscriptionId } = context.requestPayload;
   const subscription = await fetchSubscription(context, subscriptionId);
-  console.log("subscriptionId", subscriptionId);
-  console.log("subscription", subscription);
+
   if (!subscription || subscription.status !== "active") return;
 
   const renewalDate = dayjs(subscription.renewalDate);
-  console.log("casccacasc");
-  console.log(
-    `Processing reminders for subscription ${subscriptionId} with renewal date ${renewalDate.format(
-      "MMM D, YYYY"
-    )}`
-  );
-  console.log(
-    `Renewal date for subscription ${subscriptionId} is ${renewalDate.format(
-      "MMM D, YYYY"
-    )}`
-  );
-
-  if (renewalDate.isBefore(dayjs())) {
-    console.log(
-      `Renewal date has passed for subscription ${subscriptionId}. Stopping workflow.`
-    );
-    return;
-  }
 
   for (const daysBefore of REMINDERS) {
     const reminderDate = renewalDate.subtract(daysBefore, "day");
